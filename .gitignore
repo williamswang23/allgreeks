@@ -1,0 +1,37 @@
+# Copyright (c) 2025, Williams.Wang. All rights reserved. Use restricted under LICENSE terms.
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node/yarn/npm (if you add tooling later)
+node_modules/
+dist/
+.parcel-cache/
+.cache/
+
+# Python virtualenvs
+venv/
+.venv/
+ENV/
+env/
+
+# Local tooling
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Environment & secrets (never commit)
+.env
+.env.*
+.env.local
+.env.production
+.env.development
+
+# private
+docs/
+

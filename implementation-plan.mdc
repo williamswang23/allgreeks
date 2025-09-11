@@ -1,0 +1,74 @@
+Scaffold and Base Implementation Plan (MVP)
+
+1) Scaffold base web project structure and entry HTML/CSS — Done
+   - Created `index.html`, basic dark/light theme CSS, and ES module wiring via `src/app.js`.
+   - Added containers for Level-1/Level-2 Greeks surfaces and 2D self-check sections.
+
+2) Implement BSM model and Greeks with stability clamps — Done
+   - Created BlackScholesModel with numerical stability (T_min, sigma_min, d1/d2 clamping).
+   - Implemented GreeksEngine with analytical formulas for Delta, Gamma, Vega, Theta, Vanna, Charm, Vomma.
+
+3) Implement k–T grid generator with LOD and term structure presets — Done
+   - Built GridGenerator with k-T axis creation, forward price calculation, and grid mapping utilities.
+   - Added term structure factor support for teaching presets (Normal/Shock).
+
+4) Build Plotly renderer for 3D surfaces and 2D self-check charts — Done
+   - Created PlotlyRenderer with 3D surface plotting, z-axis locking, theme support.
+   - Added 2D line chart rendering for self-check (term structure and smile slices).
+
+5) Implement UI controls, theme switch, z-axis lock, and debounce LOD — Done
+   - Built UIController with slider/select binding, debounced callbacks for LOD.
+   - Integrated theme switching and parameter synchronization.
+
+6) Wire tabs (Level-1 and Level-2 Greeks) and integrate all modules — Done
+   - Completed App.js with full module integration, tab switching, and rendering pipeline.
+   - Added export PNG, copy JSON, and reset view functionality.
+
+7) Verify numeric stability on edges (T→0, deep ITM/OTM) and tune clamps — Done
+   - Applied T_min=0.02, sigma_min=0.05, d1/d2 clamping to ±8 range for numerical stability.
+   - Used analytical Greeks formulas to avoid finite difference noise.
+
+8) Prepare for Pages deploy (static assets only) — Done
+   - Project structure ready for static hosting (index.html + src/ assets).
+   - Created README.md with deployment instructions and local testing guide.
+
+Advanced Features Implementation (Milestone 2):
+
+9) Add remaining Level-2 Greeks (Speed, Zomma, Veta) — Done
+   - Implemented Speed (∂Gamma/∂S), Zomma (∂Gamma/∂σ), Veta (∂Vega/∂t) with analytical formulas.
+   - Updated UI with 6 Level-2 Greeks surfaces and enhanced titles with scaling annotations.
+
+10) Implement SVI parameterized IV surface with market flavor toggle — Done
+    - Created SVIModel with term structure anchors (T=0.1/0.5/2.0y) and linear interpolation.
+    - Added market flavor toggle for switching between constant sigma and SVI volatility surface.
+    - Integrated no-arbitrage constraint validation with calendar spread checks.
+
+11) Add Web Worker for grid computation with LOD preview — Done
+    - Implemented GreeksWorker for parallel computation of all Greeks.
+    - Created WorkerManager with fallback to main thread computation.
+    - Integrated async computation pipeline with error handling.
+
+12) Enhanced UI with Greek scaling annotations and explanatory notes — Done
+    - Added mathematical annotations to surface titles (e.g., "Gamma — ∂²C/∂S² ∝ 1/√T").
+    - Enhanced self-check charts with SVI market flavor support.
+    - Improved parameter control layout and responsiveness.
+
+13) Add numerical validation with finite difference cross-check — Done
+    - Implemented NumericalValidator with finite difference validation for Delta, Gamma, Vega, Theta.
+    - Added boundary checks and monotonicity validation.
+    - Integrated random validation sampling (10% probability) for performance balance.
+
+14) Implement snapshot sharing with JSON export/import — Done
+    - Created SnapshotManager with local storage, JSON export/import, and URL share links.
+    - Added Save Snapshot and Share Link buttons with clipboard integration.
+    - Implemented parameter compression for shorter share URLs.
+
+15) Add error boundaries and anomaly detection indicators — Done
+    - Implemented ErrorHandler with floating error/warning indicators.
+    - Added computation anomaly detection (NaN, Infinity, parameter bounds).
+    - Integrated global error catching and validation report monitoring.
+
+16) Advanced milestone complete — Done
+    - All Advanced features implemented and integrated.
+    - Project ready for production deployment with full feature set.
+
