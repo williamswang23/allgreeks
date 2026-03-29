@@ -1,6 +1,6 @@
-// Copyright (c) 2025, Williams.Wang. All rights reserved. Use restricted under LICENSE terms.
+// Copyright (c) 2026, Williams.Wang. All rights reserved. Use restricted under LICENSE terms.
 
-// 中文注释：UI 控制器，管理参数滑杆与事件绑定
+// 中文注释：UI 控制器，管理参数面板的交互与事件。
 import { Debouncer } from "../utils/MathUtils.js";
 
 /**
@@ -8,18 +8,16 @@ import { Debouncer } from "../utils/MathUtils.js";
  */
 export class UIController {
   /**
-   * @param {HTMLElement} controlsEl 控制面板容器
-   * @param {Object} initialState 初始状态
+   * @param {HTMLElement} controlsEl 控件容器
+   * @param {object} initialState 初始状态
    */
   constructor(controlsEl, initialState) {
     this.controlsEl = controlsEl;
     this.state = { ...initialState };
-    this.debouncer = new Debouncer(300);
-    
-    // 事件回调
+    this.debouncer = new Debouncer(260);
     this.onChangeImmediateCb = null;
     this.onChangeSettledCb = null;
-    
+
     this._bindControls();
     this._syncOutputs();
   }
@@ -28,31 +26,40 @@ export class UIController {
    * 绑定所有控件事件
    */
   _bindControls() {
-    // 数值滑杆
-    const sliders = ["s0", "sigma", "r", "q"];
-    sliders.forEach((key) => {
-      const slider = document.getElementById(key);
-      const output = document.getElementById(`${key}_out`);
-      if (!slider || !output) return;
-      
-      slider.addEventListener("input", () => {
-        const val = parseFloat(slider.value);
-        this.state[key] = val;
-        output.textContent = this._formatValue(key, val);
+    const numericInputs = ["s0", "sigma", "r", "q"];
+    numericInputs.forEach((key) => {
+      const input = document.getElementById(key);
+      if (!input) {
+        return;
+      }
+
+      const commitValue = () => {
+        const parsedValue = this._parseInputValue(key, input.value);
+        if (parsedValue === null) {
+          this._applyStateToInput(key, input);
+          return;
+        }
+
+        this.state[key] = parsedValue;
+        this._applyStateToInput(key, input);
         this._triggerImmediate();
-      });
-      
-      slider.addEventListener("change", () => {
         this._triggerSettled();
+      };
+
+      input.addEventListener("change", commitValue);
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          input.blur();
+        }
       });
     });
 
-    // 下拉选择
-    const selects = ["preset", "theme"];
-    selects.forEach((key) => {
+    ["preset", "theme"].forEach((key) => {
       const select = document.getElementById(key);
-      if (!select) return;
-      
+      if (!select) {
+        return;
+      }
+
       select.addEventListener("change", () => {
         this.state[key] = select.value;
         this._triggerImmediate();
@@ -60,41 +67,84 @@ export class UIController {
       });
     });
 
-    // 复选框
-    const checkboxes = ["zlock", "market_flavor"];
-    checkboxes.forEach((key) => {
+    ["zlock", "market_flavor"].forEach((key) => {
       const checkbox = document.getElementById(key);
-      if (checkbox) {
-        checkbox.addEventListener("change", () => {
-          // 仅处理这两个字段，避免误伤其它 key
-          if (key === 'zlock') this.state.zlock = checkbox.checked;
-          if (key === 'market_flavor') this.state.marketFlavor = checkbox.checked;
-          this._triggerImmediate();
-          this._triggerSettled();
-        });
+      if (!checkbox) {
+        return;
       }
-    });
-  }
 
-  /**
-   * 同步输出显示
-   */
-  _syncOutputs() {
-    const outputs = ["s0", "sigma", "r", "q"];
-    outputs.forEach((key) => {
-      const output = document.getElementById(`${key}_out`);
-      if (output) {
-        output.textContent = this._formatValue(key, this.state[key]);
-      }
+      checkbox.addEventListener("change", () => {
+        if (key === "zlock") {
+          this.state.zlock = checkbox.checked;
+        }
+        if (key === "market_flavor") {
+          this.state.marketFlavor = checkbox.checked;
+        }
+        this._triggerImmediate();
+        this._triggerSettled();
+      });
     });
   }
 
   /**
    * 格式化数值显示
+   *
+   * @param {string} key 参数名
+   * @param {number} value 参数值
+   * @returns {string} 格式化文本
    */
-  _formatValue(key, val) {
-    if (key === "s0") return val.toString();
-    return val.toFixed(3);
+  _formatInputValue(key, value) {
+    if (key === "s0") {
+      return value.toFixed(0);
+    }
+    return (value * 100).toFixed(1);
+  }
+
+  /**
+   * 将当前状态回写到输入框
+   *
+   * @param {string} key 参数名
+   * @param {HTMLInputElement} input 输入框
+   */
+  _applyStateToInput(key, input) {
+    input.value = this._formatInputValue(key, this.state[key]);
+  }
+
+  /**
+   * 解析输入框数值
+   *
+   * @param {string} key 参数名
+   * @param {string} rawValue 原始文本
+   * @returns {number | null} 解析后的参数值
+   */
+  _parseInputValue(key, rawValue) {
+    const parsed = Number.parseFloat(rawValue);
+    if (!Number.isFinite(parsed)) {
+      return null;
+    }
+
+    const input = document.getElementById(key);
+    const minValue = input?.min ? Number.parseFloat(input.min) : Number.NEGATIVE_INFINITY;
+    const maxValue = input?.max ? Number.parseFloat(input.max) : Number.POSITIVE_INFINITY;
+    const clamped = Math.min(Math.max(parsed, minValue), maxValue);
+
+    if (key === "s0") {
+      return clamped;
+    }
+
+    return clamped / 100;
+  }
+
+  /**
+   * 同步所有输入框显示
+   */
+  _syncOutputs() {
+    ["s0", "sigma", "r", "q"].forEach((key) => {
+      const input = document.getElementById(key);
+      if (input) {
+        this._applyStateToInput(key, input);
+      }
+    });
   }
 
   /**
@@ -107,7 +157,7 @@ export class UIController {
   }
 
   /**
-   * 触发延迟回调（高分辨率）
+   * 触发延迟回调（高分辨率重算）
    */
   _triggerSettled() {
     if (this.onChangeSettledCb) {
@@ -117,6 +167,8 @@ export class UIController {
 
   /**
    * 注册即时变化回调
+   *
+   * @param {Function} callback 回调函数
    */
   onChangeImmediate(callback) {
     this.onChangeImmediateCb = callback;
@@ -124,6 +176,8 @@ export class UIController {
 
   /**
    * 注册延迟变化回调
+   *
+   * @param {Function} callback 回调函数
    */
   onChangeSettled(callback) {
     this.onChangeSettledCb = callback;
@@ -131,6 +185,8 @@ export class UIController {
 
   /**
    * 获取当前参数
+   *
+   * @returns {object} 参数快照
    */
   getParams() {
     return { ...this.state };
@@ -138,39 +194,34 @@ export class UIController {
 
   /**
    * 从状态同步到 UI 控件
+   *
+   * @param {object} newState 新状态
    */
   syncFromState(newState) {
     Object.assign(this.state, newState);
-    
-    // 同步滑杆
-    const sliders = ["s0", "sigma", "r", "q"];
-    sliders.forEach((key) => {
-      const slider = document.getElementById(key);
-      if (slider && this.state[key] !== undefined) {
-        slider.value = this.state[key];
+
+    ["s0", "sigma", "r", "q"].forEach((key) => {
+      const input = document.getElementById(key);
+      if (input && this.state[key] !== undefined) {
+        this._applyStateToInput(key, input);
       }
     });
 
-    // 同步下拉选择
-    const selects = ["preset", "theme"];
-    selects.forEach((key) => {
+    ["preset", "theme"].forEach((key) => {
       const select = document.getElementById(key);
       if (select && this.state[key] !== undefined) {
         select.value = this.state[key];
       }
     });
 
-    // 同步复选框
-    const checkboxes = ["zlock", "marketFlavor"];
-    checkboxes.forEach((key) => {
+    ["zlock", "marketFlavor"].forEach((key) => {
       const domId = key === "marketFlavor" ? "market_flavor" : key;
       const checkbox = document.getElementById(domId);
-      if (checkbox && typeof this.state[key] === 'boolean') {
-        checkbox.checked = !!this.state[key];
+      if (checkbox && typeof this.state[key] === "boolean") {
+        checkbox.checked = this.state[key];
       }
     });
 
-    // 更新输出显示
     this._syncOutputs();
   }
 }

@@ -1,149 +1,35 @@
-<!-- Copyright (c) 2025, Williams.Wang. All rights reserved. Use restricted under LICENSE terms. -->
+<!-- Copyright (c) 2026, Williams.Wang. All rights reserved. Use restricted under LICENSE terms. -->
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AllGreeks — BSM 3D Greeks (Base)</title>
-    <meta name="description" content="BSM Greeks 3D interactive visualization (Base MVP)">
-    <link rel="stylesheet" href="./src/styles/main.css" />
-    <link rel="preconnect" href="https://cdn.plot.ly" />
-    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" defer></script>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    >
+    <title>AllGreeks Explorer</title>
+    <meta
+      name="description"
+      content="Advanced BSM Greeks visualization board with higher-order surfaces, SVI market flavor, and Cloudflare-ready static deployment."
+    >
+    <meta
+      name="theme-color"
+      content="#0b1320"
+    >
+    <link
+      rel="preconnect"
+      href="https://cdn.plot.ly"
+    >
+    <script
+      src="https://cdn.plot.ly/plotly-2.32.0.min.js"
+      defer
+    ></script>
+    <script
+      type="module"
+      src="./src/app.js"
+    ></script>
   </head>
   <body>
-    <div class="copyright-banner">Copyright (c) 2025, Williams.Wang. All rights reserved.</div>
-    <div id="app">
-      <header class="app-header">
-        <h1>BSM Greeks — 3D Visualization</h1>
-      </header>
-
-      <section class="controls" id="controls">
-        <div class="control-group">
-          <label for="s0">S0</label>
-          <input id="s0" type="range" min="100" max="1000" step="1" value="500" />
-          <output id="s0_out">500</output>
-        </div>
-        <div class="control-group">
-          <label for="sigma">sigma</label>
-          <input id="sigma" type="range" min="0.10" max="0.40" step="0.005" value="0.20" />
-          <output id="sigma_out">0.20</output>
-        </div>
-        <div class="control-group">
-          <label for="r">r</label>
-          <input id="r" type="range" min="0.000" max="0.060" step="0.001" value="0.040" />
-          <output id="r_out">0.040</output>
-        </div>
-        <div class="control-group">
-          <label for="q">q</label>
-          <input id="q" type="range" min="0.000" max="0.030" step="0.001" value="0.015" />
-          <output id="q_out">0.015</output>
-        </div>
-        <div class="control-group">
-          <label for="preset">Term structure preset</label>
-          <select id="preset">
-            <option value="normal" selected>Normal (upward)</option>
-            <option value="shock">Shock (inverted)</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="theme">Theme</label>
-          <select id="theme">
-            <option value="dark" selected>Dark</option>
-            <option value="light">Light</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="zlock">Lock z-range</label>
-          <input id="zlock" type="checkbox" />
-        </div>
-        <div class="control-group">
-          <label for="market_flavor">Market flavor</label>
-          <input id="market_flavor" type="checkbox" />
-        </div>
-        <div class="control-group inline-actions">
-          <button id="btn_reset_view">Reset View</button>
-          <button id="btn_export_png">Export PNG</button>
-          <button id="btn_copy_json">Copy JSON</button>
-          <button id="btn_save_snapshot">Save Snapshot</button>
-          <button id="btn_share_link">Share Link</button>
-          <button id="btn_assumptions">Assumptions</button>
-        </div>
-      </section>
-
-      <section class="tabs">
-        <div class="tab-buttons">
-          <button class="tab-btn active" data-target="level1">Level 1</button>
-          <button class="tab-btn" data-target="level2">Level 2</button>
-        </div>
-        <div class="tab-content active" id="level1">
-          <div class="plot-row">
-            <div class="plot" id="surface-delta"></div>
-            <div class="plot" id="surface-gamma"></div>
-          </div>
-          <div class="plot-row">
-            <div class="plot" id="surface-vega"></div>
-            <div class="plot" id="surface-theta"></div>
-          </div>
-        </div>
-        <div class="tab-content" id="level2">
-          <div class="plot-row">
-            <div class="plot" id="surface-vanna"></div>
-            <div class="plot" id="surface-charm"></div>
-          </div>
-          <div class="plot-row">
-            <div class="plot" id="surface-vomma"></div>
-            <div class="plot" id="surface-speed"></div>
-          </div>
-          <div class="plot-row">
-            <div class="plot" id="surface-zomma"></div>
-            <div class="plot" id="surface-veta"></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="self-check">
-        <div class="selfcheck-row">
-          <div class="plot" id="selfcheck-term"></div>
-          <div class="plot" id="selfcheck-smile"></div>
-        </div>
-      </section>
-
-      <footer class="app-footer">
-        <div>
-          Hover to see values; k = ln(K/F(T)). Theta shown per year. Use z-lock for stable range.
-        </div>
-      </footer>
-    </div>
-
-    <!-- Assumptions Modal -->
-    <div id="assumptions_modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="assumptions_title">
-      <div class="modal-backdrop"></div>
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 id="assumptions_title">Model Assumptions & Scope</h2>
-          <button id="assumptions_close" class="modal-close" aria-label="Close">×</button>
-        </div>
-        <div class="modal-body">
-          <ul>
-            <li><b>Framework</b>: Black–Scholes–Merton (BSM), European options, no early exercise.</li>
-            <li><b>Dynamics</b>: Underlying follows GBM with constant drift and volatility (Base).</li>
-            <li><b>Rates/Dividends</b>: Constant risk-free rate r and continuous dividend yield q.</li>
-            <li><b>Implied Vol</b>: Base uses constant σ; Advanced supports SVI surface (market flavor).</li>
-            <li><b>Greeks</b>: All Greeks are analytical under BSM; shown per year units when applicable.</li>
-            <li><b>Numerics</b>: Stability clamps: T ≥ 0.02, σ ≥ 0.05, |d₁|,|d₂| ≤ 8; WebGL surfaces with LOD.</li>
-            <li><b>Axes</b>: k = ln(K/F(T)) where F(T) = S·e^{(r−q)T}; ATM at k=0.</li>
-            <li><b>Scope</b>: Educational visualization; not investment advice; no guarantees of market completeness.</li>
-            <li><b>Limits</b>: No American exercise, jumps, stochastic rates/vol, or transaction costs.</li>
-          </ul>
-        </div>
-        <div class="modal-footer">
-          <button id="assumptions_ok" class="modal-primary">OK</button>
-        </div>
-      </div>
-    </div>
-
-    <script type="module" src="./src/app.js"></script>
+    <div id="app"></div>
   </body>
-  </html>
-
-
+</html>

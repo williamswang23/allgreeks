@@ -1,6 +1,6 @@
-// Copyright (c) 2025, Williams.Wang. All rights reserved. Use restricted under LICENSE terms.
+// Copyright (c) 2026, Williams.Wang. All rights reserved. Use restricted under LICENSE terms.
 
-// 中文注释：错误处理器和异常检测指示器
+// 中文注释：统一错误与提示消息展示，避免在核心流程中散落 print。
 export class ErrorHandler {
   constructor() {
     this.errorContainer = null;
@@ -9,236 +9,229 @@ export class ErrorHandler {
   }
 
   /**
-   * 初始化错误显示容器
+   * 初始化提示容器与全局捕获
    */
   init() {
-    // 创建错误提示容器
-    this.errorContainer = document.createElement('div');
-    this.errorContainer.id = 'error-indicator';
-    this.errorContainer.className = 'error-indicator hidden';
-    this.errorContainer.innerHTML = `
-      <div class="error-content">
-        <span class="error-icon">⚠️</span>
-        <span class="error-message"></span>
-        <button class="error-close" onclick="this.parentElement.parentElement.classList.add('hidden')">×</button>
-      </div>
-    `;
-
-    // 创建警告提示容器
-    this.warningContainer = document.createElement('div');
-    this.warningContainer.id = 'warning-indicator';
-    this.warningContainer.className = 'warning-indicator hidden';
-    this.warningContainer.innerHTML = `
-      <div class="warning-content">
-        <span class="warning-icon">💡</span>
-        <span class="warning-message"></span>
-        <button class="warning-close" onclick="this.parentElement.parentElement.classList.add('hidden')">×</button>
-      </div>
-    `;
-
-    // 添加到页面
+    this.errorContainer = this._createToast("error");
+    this.warningContainer = this._createToast("warning");
     document.body.appendChild(this.errorContainer);
     document.body.appendChild(this.warningContainer);
+    this._ensureStyles();
 
-    // 添加样式
-    this.addStyles();
-
-    // 全局错误捕获
-    window.addEventListener('error', (event) => {
-      this.showError(`JavaScript Error: ${event.message}`, 5000);
+    window.addEventListener("error", (event) => {
+      this.showError(`JavaScript error: ${event.message}`, 5000);
     });
 
-    window.addEventListener('unhandledrejection', (event) => {
-      this.showError(`Promise Rejection: ${event.reason}`, 5000);
+    window.addEventListener("unhandledrejection", (event) => {
+      this.showError(`Unhandled promise rejection: ${String(event.reason)}`, 5000);
     });
   }
 
   /**
-   * 添加样式
+   * 创建提示容器
+   *
+   * @param {"error" | "warning"} tone 提示类型
+   * @returns {HTMLElement} DOM 节点
    */
-  addStyles() {
-    if (document.getElementById('error-handler-styles')) return;
+  _createToast(tone) {
+    const element = document.createElement("div");
+    element.className = `toast toast--${tone} hidden`;
+    element.innerHTML = `
+      <div class="toast__content">
+        <span class="toast__marker">${tone === "error" ? "!" : "i"}</span>
+        <span class="toast__message"></span>
+        <button class="toast__close" type="button" aria-label="Dismiss">×</button>
+      </div>
+    `;
 
-    const style = document.createElement('style');
-    style.id = 'error-handler-styles';
+    element.querySelector(".toast__close")?.addEventListener("click", () => {
+      element.classList.add("hidden");
+    });
+
+    return element;
+  }
+
+  /**
+   * 添加内联样式
+   */
+  _ensureStyles() {
+    if (document.getElementById("error-handler-styles")) {
+      return;
+    }
+
+    const style = document.createElement("style");
+    style.id = "error-handler-styles";
     style.textContent = `
-      .error-indicator, .warning-indicator {
+      .toast {
         position: fixed;
         top: 20px;
         right: 20px;
-        z-index: 1000;
-        max-width: 400px;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
+        z-index: 1100;
+        max-width: min(440px, calc(100vw - 32px));
+        border-radius: 18px;
+        border: 1px solid rgba(125, 149, 173, 0.18);
+        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(18px);
+        transition: transform 160ms ease, opacity 160ms ease;
       }
 
-      .error-indicator {
-        background: #fee2e2;
-        border: 1px solid #fca5a5;
-        color: #991b1b;
+      .toast--error {
+        background: rgba(64, 16, 20, 0.92);
+        color: #fbd6d8;
       }
 
-      .warning-indicator {
-        background: #fef3c7;
-        border: 1px solid #fbbf24;
-        color: #92400e;
+      .toast--warning {
+        background: rgba(48, 38, 12, 0.92);
+        color: #f7ebc9;
       }
 
-      .error-content, .warning-content {
+      body.light .toast--error {
+        background: rgba(255, 242, 242, 0.94);
+        color: #aa2b35;
+      }
+
+      body.light .toast--warning {
+        background: rgba(255, 249, 226, 0.96);
+        color: #8f6110;
+      }
+
+      .toast__content {
         display: flex;
         align-items: center;
-        padding: 12px 16px;
-        gap: 8px;
+        gap: 12px;
+        padding: 14px 16px;
       }
 
-      .error-icon, .warning-icon {
-        font-size: 18px;
+      .toast__marker {
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 600;
+        border: 1px solid currentColor;
         flex-shrink: 0;
       }
 
-      .error-message, .warning-message {
+      .toast__message {
         flex: 1;
-        font-size: 14px;
+        line-height: 1.45;
       }
 
-      .error-close, .warning-close {
-        background: none;
-        border: none;
-        font-size: 18px;
+      .toast__close {
+        min-width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        border: 0;
+        background: transparent;
+        color: inherit;
         cursor: pointer;
-        padding: 0;
-        width: 20px;
-        height: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
       }
 
-      .error-close:hover {
-        background: rgba(153, 27, 27, 0.1);
-      }
-
-      .warning-close:hover {
-        background: rgba(146, 64, 14, 0.1);
-      }
-
-      .hidden {
+      .toast.hidden {
         opacity: 0;
-        transform: translateX(100%);
+        transform: translateY(-10px);
         pointer-events: none;
       }
-
-      .light .error-indicator {
-        background: #fef2f2;
-        border-color: #f87171;
-        color: #dc2626;
-      }
-
-      .light .warning-indicator {
-        background: #fffbeb;
-        border-color: #f59e0b;
-        color: #d97706;
-      }
     `;
+
     document.head.appendChild(style);
   }
 
   /**
    * 显示错误消息
+   *
+   * @param {string} message 消息文本
+   * @param {number} duration 持续时间
    */
   showError(message, duration = 8000) {
-    const messageEl = this.errorContainer.querySelector('.error-message');
-    messageEl.textContent = message;
-    this.errorContainer.classList.remove('hidden');
-    
-    if (duration > 0) {
-      setTimeout(() => {
-        this.errorContainer.classList.add('hidden');
-      }, duration);
-    }
+    this._showToast(this.errorContainer, message, duration);
   }
 
   /**
-   * 显示警告消息
+   * 显示提示消息
+   *
+   * @param {string} message 消息文本
+   * @param {number} duration 持续时间
    */
-  showWarning(message, duration = 6000) {
-    const messageEl = this.warningContainer.querySelector('.warning-message');
-    messageEl.textContent = message;
-    this.warningContainer.classList.remove('hidden');
-    
+  showWarning(message, duration = 5000) {
+    this._showToast(this.warningContainer, message, duration);
+  }
+
+  /**
+   * 底层 toast 显示逻辑
+   *
+   * @param {HTMLElement} container 容器
+   * @param {string} message 文本
+   * @param {number} duration 持续时间
+   */
+  _showToast(container, message, duration) {
+    const messageElement = container.querySelector(".toast__message");
+    if (messageElement) {
+      messageElement.textContent = message;
+    }
+    container.classList.remove("hidden");
+
     if (duration > 0) {
-      setTimeout(() => {
-        this.warningContainer.classList.add('hidden');
+      window.setTimeout(() => {
+        container.classList.add("hidden");
       }, duration);
     }
   }
 
   /**
    * 检查计算异常
+   *
+   * @param {Record<string, number[][]>} greekResults 希腊字母结果
+   * @param {{ sigma: number, r: number }} params 当前参数
+   * @returns {string[]} 警告列表
    */
   checkComputationAnomalies(greekResults, params) {
     const warnings = [];
-    const { s0, sigma, r, q } = params;
 
-    // 检查 NaN 或 Infinity
-    for (const [greekName, surface] of Object.entries(greekResults)) {
-      if (!surface || !Array.isArray(surface)) continue;
-      
+    Object.entries(greekResults).forEach(([greekName, surface]) => {
       let hasNaN = false;
       let hasInfinity = false;
-      
-      for (let i = 0; i < surface.length && !hasNaN && !hasInfinity; i++) {
-        for (let j = 0; j < surface[i].length; j++) {
-          const val = surface[i][j];
-          if (isNaN(val)) hasNaN = true;
-          if (!isFinite(val)) hasInfinity = true;
-          if (hasNaN || hasInfinity) break;
-        }
+
+      surface.forEach((row) => {
+        row.forEach((value) => {
+          if (Number.isNaN(value)) {
+            hasNaN = true;
+          }
+          if (!Number.isFinite(value)) {
+            hasInfinity = true;
+          }
+        });
+      });
+
+      if (hasNaN) {
+        warnings.push(`${greekName} contains NaN values`);
       }
-      
-      if (hasNaN) warnings.push(`${greekName} contains NaN values`);
-      if (hasInfinity) warnings.push(`${greekName} contains infinite values`);
+      if (hasInfinity) {
+        warnings.push(`${greekName} contains infinite values`);
+      }
+    });
+
+    if (params.sigma < 0.05) {
+      warnings.push("Volatility is near the numerical lower bound.");
+    }
+    if (params.sigma > 0.8) {
+      warnings.push("Volatility is unusually high for teaching presets.");
+    }
+    if (params.r < 0) {
+      warnings.push("Negative interest rate detected.");
+    }
+    if (params.r > 0.15) {
+      warnings.push("Interest rate is unusually high.");
     }
 
-    // 检查参数合理性
-    if (sigma < 0.05) warnings.push('Volatility very low (< 5%)');
-    if (sigma > 0.8) warnings.push('Volatility very high (> 80%)');
-    if (r < 0) warnings.push('Negative interest rate detected');
-    if (r > 0.15) warnings.push('Interest rate very high (> 15%)');
-
-    // 显示警告
     if (warnings.length > 0) {
-      this.showWarning(`Computation anomalies: ${warnings.join('; ')}`);
-      console.warn('Computation anomalies detected:', warnings);
+      this.showWarning(`Computation anomalies: ${warnings.join("; ")}`, 7000);
+      console.warn("Computation anomalies detected:", warnings);
     }
 
     return warnings;
-  }
-
-  /**
-   * 检查数值稳定性
-   */
-  checkNumericalStability(validationReport) {
-    if (!validationReport) return;
-
-    const { failed, warnings, totalTests } = validationReport;
-    
-    if (failed > 0) {
-      this.showError(`Numerical validation failed: ${failed}/${totalTests} tests failed`);
-    }
-    
-    if (warnings.length > 5) {
-      this.showWarning(`Multiple numerical warnings (${warnings.length})`);
-    }
-  }
-
-  /**
-   * 清除所有提示
-   */
-  clearAll() {
-    this.errorContainer.classList.add('hidden');
-    this.warningContainer.classList.add('hidden');
   }
 }
