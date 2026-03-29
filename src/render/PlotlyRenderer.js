@@ -1,5 +1,7 @@
 // Copyright (c) 2026, Williams.Wang. All rights reserved. Use restricted under LICENSE terms.
 
+import Plotly from "plotly.js-gl3d-dist-min";
+
 // 中文注释：渲染器，封装 Plotly 3D Surface 与 2D 自检图表绘制。
 const CAMERA_PRESETS = {
   perspective: { eye: { x: 1.55, y: 1.62, z: 0.95 } },

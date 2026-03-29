@@ -280,8 +280,6 @@ class App {
         this.errorHandler.showWarning("Loaded parameters from share link.", 2600);
       }
 
-      await this._waitForPlotly();
-
       this.useWorker = await this.worker.init();
       this._setWorkerStatus();
       this.hasStarted = true;
@@ -291,20 +289,6 @@ class App {
       console.error("App initialization error:", error);
       this._setStatus("Initialization failed");
     }
-  }
-
-  /**
-   * 等待 Plotly 全局对象就绪
-   */
-  async _waitForPlotly() {
-    const maxAttempts = 60;
-    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      if (typeof window.Plotly !== "undefined") {
-        return;
-      }
-      await new Promise((resolve) => window.setTimeout(resolve, 100));
-    }
-    throw new Error("Plotly did not finish loading.");
   }
 
   /**

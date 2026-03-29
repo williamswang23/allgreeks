@@ -16,7 +16,6 @@ export class ErrorHandler {
     this.warningContainer = this._createToast("warning");
     document.body.appendChild(this.errorContainer);
     document.body.appendChild(this.warningContainer);
-    this._ensureStyles();
 
     window.addEventListener("error", (event) => {
       this.showError(`JavaScript error: ${event.message}`, 5000);
@@ -36,108 +35,28 @@ export class ErrorHandler {
   _createToast(tone) {
     const element = document.createElement("div");
     element.className = `toast toast--${tone} hidden`;
-    element.innerHTML = `
-      <div class="toast__content">
-        <span class="toast__marker">${tone === "error" ? "!" : "i"}</span>
-        <span class="toast__message"></span>
-        <button class="toast__close" type="button" aria-label="Dismiss">×</button>
-      </div>
-    `;
+    const content = document.createElement("div");
+    content.className = "toast__content";
 
-    element.querySelector(".toast__close")?.addEventListener("click", () => {
+    const marker = document.createElement("span");
+    marker.className = "toast__marker";
+    marker.textContent = tone === "error" ? "!" : "i";
+
+    const message = document.createElement("span");
+    message.className = "toast__message";
+
+    const closeButton = document.createElement("button");
+    closeButton.className = "toast__close";
+    closeButton.type = "button";
+    closeButton.setAttribute("aria-label", "Dismiss");
+    closeButton.textContent = "×";
+    closeButton.addEventListener("click", () => {
       element.classList.add("hidden");
     });
 
+    content.append(marker, message, closeButton);
+    element.appendChild(content);
     return element;
-  }
-
-  /**
-   * 添加内联样式
-   */
-  _ensureStyles() {
-    if (document.getElementById("error-handler-styles")) {
-      return;
-    }
-
-    const style = document.createElement("style");
-    style.id = "error-handler-styles";
-    style.textContent = `
-      .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 1100;
-        max-width: min(440px, calc(100vw - 32px));
-        border-radius: 18px;
-        border: 1px solid rgba(125, 149, 173, 0.18);
-        box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(18px);
-        transition: transform 160ms ease, opacity 160ms ease;
-      }
-
-      .toast--error {
-        background: rgba(64, 16, 20, 0.92);
-        color: #fbd6d8;
-      }
-
-      .toast--warning {
-        background: rgba(48, 38, 12, 0.92);
-        color: #f7ebc9;
-      }
-
-      body.light .toast--error {
-        background: rgba(255, 242, 242, 0.94);
-        color: #aa2b35;
-      }
-
-      body.light .toast--warning {
-        background: rgba(255, 249, 226, 0.96);
-        color: #8f6110;
-      }
-
-      .toast__content {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 14px 16px;
-      }
-
-      .toast__marker {
-        width: 28px;
-        height: 28px;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-family: "IBM Plex Mono", monospace;
-        font-weight: 600;
-        border: 1px solid currentColor;
-        flex-shrink: 0;
-      }
-
-      .toast__message {
-        flex: 1;
-        line-height: 1.45;
-      }
-
-      .toast__close {
-        min-width: 28px;
-        height: 28px;
-        border-radius: 999px;
-        border: 0;
-        background: transparent;
-        color: inherit;
-        cursor: pointer;
-      }
-
-      .toast.hidden {
-        opacity: 0;
-        transform: translateY(-10px);
-        pointer-events: none;
-      }
-    `;
-
-    document.head.appendChild(style);
   }
 
   /**
