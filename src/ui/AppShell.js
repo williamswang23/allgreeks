@@ -79,7 +79,7 @@ export function renderAppShell(root) {
         </nav>
 
         <div class="header-meta">
-          <span>By Williams.Wang</span>
+          <a href="https://x.com/williamswjt" target="_blank" rel="noreferrer">X @williamswjt</a>
           <a href="https://github.com/williamswang23/allgreeks" target="_blank" rel="noreferrer">GitHub</a>
           <button type="button" class="mobile-controls-button" id="open-mobile-controls">Controls</button>
         </div>
