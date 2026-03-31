@@ -2,10 +2,19 @@
 
 import "../styles/main.css";
 import logoPath from "../../assets/WWR_logo_reverse_white_transparent.png";
-import { HERO_FACTS, INFO_CARDS, LEVEL1_SPECS, LEVEL2_SPECS, SELF_CHECK_SPECS, VIEW_CONFIGS } from "../config/dashboardConfig.js";
+import {
+  HERO_FACTS,
+  INFO_CARDS,
+  LEVEL1_SPECS,
+  LEVEL2_SPECS,
+  SELF_CHECK_SPECS,
+  VIEW_CONFIGS,
+} from "../config/dashboardConfig.js";
 
 function buildSurfaceCardsMarkup(specs) {
-  return specs.map((spec) => `
+  return specs
+    .map(
+      (spec) => `
     <article class="surface-card">
       <div class="surface-card__meta">
         <div>
@@ -33,11 +42,14 @@ function buildSurfaceCardsMarkup(specs) {
         <span id="range-${spec.id}">Waiting for render...</span>
       </div>
     </article>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function buildCheckCardsMarkup() {
-  return SELF_CHECK_SPECS.map((spec) => `
+  return SELF_CHECK_SPECS.map(
+    (spec) => `
     <article class="check-card">
       <div class="check-card__header">
         <div>
@@ -48,7 +60,8 @@ function buildCheckCardsMarkup() {
       <p>${spec.description}</p>
       <div class="check-card__plot" id="${spec.containerId}"></div>
     </article>
-  `).join("");
+  `,
+  ).join("");
 }
 
 /**
@@ -71,16 +84,17 @@ export function renderAppShell(root) {
         </div>
 
         <nav class="site-nav" aria-label="Primary">
-          ${VIEW_CONFIGS.map((view) => `
+          ${VIEW_CONFIGS.map(
+            (view) => `
             <button type="button" class="nav-link ${view.id === "overview" ? "is-active" : ""}" data-view="${view.id}">
               ${view.label}
             </button>
-          `).join("")}
+          `,
+          ).join("")}
         </nav>
 
         <div class="header-meta">
           <a href="https://x.com/williamswjt" target="_blank" rel="noreferrer">X @williamswjt</a>
-          <a href="https://github.com/williamswang23/allgreeks" target="_blank" rel="noreferrer">GitHub</a>
           <button type="button" class="mobile-controls-button" id="open-mobile-controls">Controls</button>
         </div>
       </header>
@@ -214,10 +228,10 @@ export function renderAppShell(root) {
                   <span class="eyebrow">Quant research board</span>
                   <h2>Read the entire Greek stack with one visual language.</h2>
                   <p>
-                    This refactor keeps the original analytical engine and advanced features,
-                    but wraps them in a cleaner board layout inspired by your 0DTE project:
-                    one sidebar for assumptions, one content lane for interpretation, and one
-                    consistent card system for every surface.
+                    This board keeps the original analytical engine and advanced features intact,
+                    while organizing the full Greek stack into a cleaner workflow with unified
+                    controls, concise interpretation, and one consistent card system for every
+                    surface.
                   </p>
                   <div class="hero-actions">
                     <button type="button" class="primary-link" data-view="level1">Open Level 1</button>
@@ -225,23 +239,27 @@ export function renderAppShell(root) {
                   </div>
                 </div>
                 <div class="hero-facts">
-                  ${HERO_FACTS.map((fact) => `
+                  ${HERO_FACTS.map(
+                    (fact) => `
                     <div class="hero-fact">
                       <span>${fact.label}</span>
                       <strong>${fact.value}</strong>
                     </div>
-                  `).join("")}
+                  `,
+                  ).join("")}
                 </div>
               </section>
 
               <section class="info-grid">
-                ${INFO_CARDS.map((card) => `
+                ${INFO_CARDS.map(
+                  (card) => `
                   <article class="info-card">
                     <span class="eyebrow">${card.eyebrow}</span>
                     <h3>${card.title}</h3>
                     <p>${card.body}</p>
                   </article>
-                `).join("")}
+                `,
+                ).join("")}
               </section>
 
               <section class="check-grid">

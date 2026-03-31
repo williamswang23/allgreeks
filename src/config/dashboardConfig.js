@@ -9,7 +9,7 @@ export const VIEW_CONFIGS = [
 export const HERO_FACTS = [
   { label: "Framework", value: "BSM / European vanilla + SVI overlay" },
   { label: "Axes", value: "k = ln(K/F(T)) and time-to-expiry" },
-  { label: "Delivery", value: "Cloudflare Pages linked to GitHub main" },
+  { label: "Modes", value: "Teaching presets and market-flavor surfaces" },
 ];
 
 export const INFO_CARDS = [
@@ -22,11 +22,6 @@ export const INFO_CARDS = [
     eyebrow: "How to read",
     title: "Core teaching mode and market flavor mode are intentionally separated.",
     body: "Teaching presets keep the intuition simple, while SVI mode injects a realistic skew and term structure so the surfaces stop looking artificially flat.",
-  },
-  {
-    eyebrow: "Deployment",
-    title: "The live site is a Cloudflare Pages project wired to GitHub, not a Worker script.",
-    body: "You now have local build tooling plus a manual Pages deploy command, while the existing production project remains linked to the repository's main branch.",
   },
 ];
 
